@@ -18,13 +18,17 @@ while True:
         continue
 
     text = data.decode()
-    first_line = text.split("\r\n")[0]
-    method, path, version = first_line.split(" ")
+    lines = text.split("\r\n")
+    method, path, version = lines[0].split(" ")
 
-    print("Method :", method)
-    print("Path   :", path)
-    print("Version:", version)
-    print("-----")
+    headers = {}
+    for line in lines[1:]:
+        if line == "":
+            break
+        name, _, value = line.partition(":")
+        headers[name.strip().lower()] = value.strip()
+
+    print(method, path, "| browser:", headers.get("user-agent"))
 
     if path == "/":
         status = "200 OK"
@@ -32,6 +36,9 @@ while True:
     elif path == "/about":
         status = "200 OK"
         body = "I built this server myself, from scratch."
+    elif path == "/headers":
+        status = "200 OK"
+        body = "\n".join(f"{name}: {value}" for name, value in headers.items())
     else:
         status = "404 Not Found"
         body = "Page not found"
