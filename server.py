@@ -1,4 +1,6 @@
 import socket
+import sys
+import threading
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -42,24 +44,18 @@ def route(path, headers):
         return "404 Not Found", "Page not found"
 
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind((HOST, PORT))
-server.listen()
-print("Server is running at http://127.0.0.1:8080")
-
-while True:
-    conn, addr = server.accept()
+def handle_client(conn):
+    conn.settimeout(5)
     try:
         data = conn.recv(4096)
         if not data:
-            continue
+            return
 
         try:
             method, path, version, headers = parse_request(data)
         except ValueError:
             conn.sendall(make_response("400 Bad Request", "Bad request"))
-            continue
+            return
 
         print(method, path, "| browser:", headers.get("user-agent"))
         status, body = route(path, headers)
@@ -68,3 +64,16 @@ while True:
         print("Error handling request:", error)
     finally:
         conn.close()
+
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if sys.platform != "win32":
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind((HOST, PORT))
+server.listen()
+print("Server is running at http://127.0.0.1:8080")
+
+while True:
+    conn, addr = server.accept()
+    thread = threading.Thread(target=handle_client, args=(conn,))
+    thread.start()
