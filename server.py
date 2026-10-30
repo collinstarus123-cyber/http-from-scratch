@@ -66,14 +66,28 @@ def handle_client(conn):
         conn.close()
 
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if sys.platform != "win32":
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind((HOST, PORT))
-server.listen()
-print("Server is running at http://127.0.0.1:8080")
+def main():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if sys.platform != "win32":
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((HOST, PORT))
+    server.listen()
+    server.settimeout(1)
+    print("Server is running at http://127.0.0.1:8080")
 
-while True:
-    conn, addr = server.accept()
-    thread = threading.Thread(target=handle_client, args=(conn,))
-    thread.start()
+    try:
+        while True:
+            try:
+                conn, addr = server.accept()
+            except socket.timeout:
+                continue
+            thread = threading.Thread(target=handle_client, args=(conn,))
+            thread.start()
+    except KeyboardInterrupt:
+        print("\nShutting down.")
+    finally:
+        server.close()
+
+
+if __name__ == "__main__":
+    main()
