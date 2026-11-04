@@ -41,6 +41,16 @@ Then open http://127.0.0.1:8080 in your browser.
 | `/about` | `200` About message |
 | `/headers` | `200` The headers your browser sent |
 | anything else | `404` Page not found |
+## Benchmarks
+
+Measured with `benchmark.py` on my laptop (Windows, Python 3.14), client and server on the same machine:
+
+| Concurrent clients | Requests | Requests/sec | Avg latency | p95 latency |
+|---|---|---|---|---|
+| 10 | 2000 | 2002 | 4.4 ms | 12.0 ms |
+| 50 | 5000 | 2617 | 18.9 ms | 28.3 ms |
+
+Run it yourself: start the server, then `python benchmark.py 10 200`.
 
 ## Run the tests
 
@@ -65,7 +75,7 @@ The suite has unit tests for the parser, router and response builder, plus integ
 - [x] Error handling (`400`, `404`)
 - [x] Concurrency with threads and timeouts
 - [x] Automated tests and CI
-- [ ] Benchmarks (requests per second)
+- [x] Benchmarks (requests per second)
 - [ ] Serve static files safely (blocking `../` path tricks)
 - [ ] Keep-alive connections
 - [ ] Event-loop version (`selectors`) compared against threads
