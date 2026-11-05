@@ -51,6 +51,12 @@ def run(clients, per_client):
 
 
 if __name__ == "__main__":
+    try:
+        socket.create_connection((HOST, PORT), timeout=2).close()
+    except OSError:
+        print("Cannot reach the server. Start it first with: python server.py")
+        sys.exit(1)
+
     clients = int(sys.argv[1]) if len(sys.argv) > 1 else 10
     per_client = int(sys.argv[2]) if len(sys.argv) > 2 else 200
     run(clients, per_client)
