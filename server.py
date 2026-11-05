@@ -1,16 +1,21 @@
+import mimetypes
 import socket
 import sys
 import threading
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 HOST = "127.0.0.1"
 PORT = 8080
+PUBLIC = (Path(__file__).parent / "public").resolve()
+TEXT = "text/plain; charset=utf-8"
 
 
-def make_response(status, body):
-    body_bytes = body.encode()
+def make_response(status, body, content_type=TEXT):
+    body_bytes = body.encode() if isinstance(body, str) else body
     return (
         f"HTTP/1.1 {status}\r\n"
-        "Content-Type: text/plain\r\n"
+        f"Content-Type: {content_type}\r\n"
         f"Content-Length: {len(body_bytes)}\r\n"
         "Connection: close\r\n"
         "\r\n"
@@ -32,16 +37,34 @@ def parse_request(data):
     return method, path, version, headers
 
 
+def serve_static(path):
+    try:
+        clean = unquote(urlsplit(path).path)
+        target = (PUBLIC / clean.lstrip("/")).resolve()
+    except (ValueError, OSError):
+        return "400 Bad Request", "Bad request", TEXT
+
+    if not target.is_relative_to(PUBLIC):
+        return "403 Forbidden", "Forbidden", TEXT
+    if target.is_dir():
+        target = target / "index.html"
+    if not target.is_file():
+        return "404 Not Found", "Page not found", TEXT
+
+    content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+    if content_type.startswith("text/"):
+        content_type += "; charset=utf-8"
+    return "200 OK", target.read_bytes(), content_type
+
+
 def route(path, headers):
-    if path == "/":
-        return "200 OK", "Welcome to my server!"
-    elif path == "/about":
-        return "200 OK", "I built this server myself, from scratch."
-    elif path == "/headers":
+    clean = urlsplit(path).path
+    if clean == "/about":
+        return "200 OK", "I built this server myself, from scratch.", TEXT
+    if clean == "/headers":
         body = "\n".join(f"{name}: {value}" for name, value in headers.items())
-        return "200 OK", body
-    else:
-        return "404 Not Found", "Page not found"
+        return "200 OK", body, TEXT
+    return serve_static(path)
 
 
 def handle_client(conn):
@@ -58,8 +81,8 @@ def handle_client(conn):
             return
 
         print(method, path, "| browser:", headers.get("user-agent"))
-        status, body = route(path, headers)
-        conn.sendall(make_response(status, body))
+        status, body, content_type = route(path, headers)
+        conn.sendall(make_response(status, body, content_type))
     except Exception as error:
         print("Error handling request:", error)
     finally:

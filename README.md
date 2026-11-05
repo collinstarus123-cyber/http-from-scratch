@@ -12,6 +12,7 @@ A multi-threaded HTTP/1.1 web server built directly on raw TCP sockets in Python
 - One thread per connection, so one slow client never blocks the others
 - 5-second timeout on silent connections
 - 8 automated tests, run on every push with GitHub Actions
+- Serves static files from `public/`, with path traversal blocked (`403 Forbidden`)
 
 ## How a request flows
 
@@ -76,7 +77,7 @@ The suite has unit tests for the parser, router and response builder, plus integ
 - [x] Concurrency with threads and timeouts
 - [x] Automated tests and CI
 - [x] Benchmarks (requests per second)
-- [ ] Serve static files safely (blocking `../` path tricks)
+- [x] Serve static files safely (blocking `../` path tricks)
 - [ ] Keep-alive connections
 - [ ] Event-loop version (`selectors`) compared against threads
 - [ ] Reverse proxy and load balancer with health checks

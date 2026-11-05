@@ -105,3 +105,14 @@ def test_silent_client_does_not_block_others(running_server):
         assert elapsed < 2
     finally:
         silent.close()
+def test_static_index_is_served(running_server):
+    reply = send(b"GET / HTTP/1.1\r\nHost: x\r\n\r\n")
+    assert reply.startswith(b"HTTP/1.1 200")
+    assert b"text/html" in reply
+
+
+def test_path_traversal_is_blocked(running_server):
+    for evil in ["/../server.py", "/..%2fserver.py", "/%2e%2e/server.py"]:
+        reply = send(f"GET {evil} HTTP/1.1\r\nHost: x\r\n\r\n".encode())
+        assert b"def make_response" not in reply
+        assert reply.startswith(b"HTTP/1.1 403")
