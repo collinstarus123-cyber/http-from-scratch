@@ -116,3 +116,7 @@ def test_path_traversal_is_blocked(running_server):
         reply = send(f"GET {evil} HTTP/1.1\r\nHost: x\r\n\r\n".encode())
         assert b"def make_response" not in reply
         assert reply.startswith(b"HTTP/1.1 403")
+def test_whoami_reports_the_port():
+    status, body, _ = route("/whoami", {})
+    assert status == "200 OK"
+    assert "port" in body

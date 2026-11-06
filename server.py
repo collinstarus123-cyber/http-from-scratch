@@ -1,3 +1,4 @@
+import argparse
 import mimetypes
 import socket
 import sys
@@ -61,6 +62,8 @@ def route(path, headers):
     clean = urlsplit(path).path
     if clean == "/about":
         return "200 OK", "I built this server myself, from scratch.", TEXT
+    if clean == "/whoami":
+        return "200 OK", f"Answered by the server on port {PORT}", TEXT
     if clean == "/headers":
         body = "\n".join(f"{name}: {value}" for name, value in headers.items())
         return "200 OK", body, TEXT
@@ -90,13 +93,19 @@ def handle_client(conn):
 
 
 def main():
+    global PORT
+    parser = argparse.ArgumentParser(description="A small HTTP server built on raw sockets.")
+    parser.add_argument("--port", type=int, default=8080, help="port to listen on (default 8080)")
+    args = parser.parse_args()
+    PORT = args.port
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if sys.platform != "win32":
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT))
     server.listen()
     server.settimeout(1)
-    print("Server is running at http://127.0.0.1:8080")
+    print(f"Server is running at http://{HOST}:{PORT}")
 
     try:
         while True:
