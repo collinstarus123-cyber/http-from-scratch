@@ -52,6 +52,21 @@ Measured with `benchmark.py` on my laptop (Windows, Python 3.14), client and ser
 | 50 | 5000 | 2617 | 18.9 ms | 28.3 ms |
 
 Run it yourself: start the server, then `python benchmark.py 10 200`.
+## Load balancer demo
+
+`proxy.py` is a reverse proxy that spreads requests across several copies of the server (round-robin) and automatically stops sending traffic to any copy that fails its health check.
+
+```
+python server.py --port 9001
+python server.py --port 9002
+python proxy.py
+```
+
+Then `curl http://127.0.0.1:8080/whoami` alternates between the two ports. Stop one backend and every request is served by the other within seconds. Start it again and it rejoins on its own.
+
+- Active health checks: `GET /health` on every backend every 2 seconds
+- Passive detection: a failed forward marks that backend down immediately and retries on the next one
+- `503` only when every backend is down
 
 ## Run the tests
 
@@ -80,4 +95,4 @@ The suite has unit tests for the parser, router and response builder, plus integ
 - [x] Serve static files safely (blocking `../` path tricks)
 - [ ] Keep-alive connections
 - [ ] Event-loop version (`selectors`) compared against threads
-- [ ] Reverse proxy and load balancer with health checks
+- [x] Reverse proxy and load balancer with health checks

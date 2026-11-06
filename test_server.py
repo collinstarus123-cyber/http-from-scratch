@@ -127,3 +127,29 @@ def test_round_robin_alternates():
     pool = RoundRobin([("a", 1), ("b", 2)])
     picks = [pool.next() for _ in range(4)]
     assert picks == [("a", 1), ("b", 2), ("a", 1), ("b", 2)]
+
+
+def test_health_route_is_ok():
+    status, body, _ = route("/health", {})
+    assert status == "200 OK"
+    assert body == "ok"
+
+
+def test_round_robin_skips_unhealthy_backends():
+    pool = RoundRobin([("a", 1), ("b", 2)])
+    pool.set_health(("b", 2), False)
+    assert [pool.next() for _ in range(3)] == [("a", 1)] * 3
+
+
+def test_round_robin_returns_none_when_all_are_down():
+    pool = RoundRobin([("a", 1)])
+    pool.set_health(("a", 1), False)
+    assert pool.next() is None
+
+
+def test_backend_rejoins_after_recovering():
+    pool = RoundRobin([("a", 1), ("b", 2)])
+    pool.set_health(("b", 2), False)
+    assert pool.set_health(("b", 2), True) is True
+    assert ("b", 2) in [pool.next() for _ in range(2)]
+    
