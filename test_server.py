@@ -5,6 +5,7 @@ import time
 
 import pytest
 
+from proxy import RoundRobin
 from server import make_response, parse_request, route
 
 HOST, PORT = "127.0.0.1", 8080
@@ -120,3 +121,9 @@ def test_whoami_reports_the_port():
     status, body, _ = route("/whoami", {})
     assert status == "200 OK"
     assert "port" in body
+
+
+def test_round_robin_alternates():
+    pool = RoundRobin([("a", 1), ("b", 2)])
+    picks = [pool.next() for _ in range(4)]
+    assert picks == [("a", 1), ("b", 2), ("a", 1), ("b", 2)]
