@@ -1,3 +1,5 @@
+![Load balancer failover demo](docs/demo.gif)
+
 # HTTP Server From Scratch
 
 ![CI](https://github.com/collinstarus123-cyber/http-from-scratch/actions/workflows/ci.yml/badge.svg)
