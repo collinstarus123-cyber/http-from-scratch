@@ -13,9 +13,10 @@ A multi-threaded HTTP/1.1 web server built directly on raw TCP sockets in Python
 - Correct status codes: `200`, `404`, and `400` for malformed requests
 - One thread per connection, so one slow client never blocks the others
 - 5-second timeout on silent connections
-- 8 automated tests, run on every push with GitHub Actions
+- Automated unit and integration tests (pytest), run on every push with GitHub Actions
 - Serves static files from `public/`, with path traversal blocked (`403 Forbidden`)
-
+- Reverse proxy with round-robin balancing, health checks and automatic failover (`proxy.py`)
+- One-command demo of the whole setup (`demo.py`), also run in CI
 ## How a request flows
 
 ```
