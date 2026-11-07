@@ -67,6 +67,13 @@ Then `curl http://127.0.0.1:8080/whoami` alternates between the two ports. Stop 
 - Active health checks: `GET /health` on every backend every 2 seconds
 - Passive detection: a failed forward marks that backend down immediately and retries on the next one
 - `503` only when every backend is down
+### One-command demo
+
+```
+python demo.py
+```
+
+Starts two backends and the proxy, shows requests alternating, stops one backend (no request fails), then starts it again and watches it rejoin. Add `--serve` to leave everything running so you can try it in a browser. CI runs this demo on every push.
 
 ## Run the tests
 
